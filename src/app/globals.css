@@ -1,0 +1,287 @@
+@import "tailwindcss";
+
+:root {
+  --background: #060304;
+  --foreground: #ededed;
+  --kyron-red: #ff1a1a;
+  --kyron-red-deep: #c40000;
+  --kyron-dim: #8a8a8a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-kyron-red: var(--kyron-red);
+  --color-kyron-red-deep: var(--kyron-red-deep);
+  --color-kyron-dim: var(--kyron-dim);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html, body {
+  background: var(--background);
+  color: var(--foreground);
+  height: 100%;
+}
+
+/* ============================================================
+   Kyron backdrop: a fixed, full-viewport layer sitting behind
+   all page content. Everything inside it is positioned relative
+   to this single stacking context so z-index actually behaves.
+   ============================================================ */
+.kyron-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--background);
+  pointer-events: none;
+}
+
+/* Slow-drifting red storm clouds — soft, blurred, layered.
+   The blur lives on a static outer wrapper; the animated transform
+   runs on an unblurred inner layer. Some browsers under-repaint an
+   element that combines `filter: blur()` with a running `transform`
+   animation on itself, which can visually "stick" after first paint —
+   splitting the two into parent/child avoids that. */
+.kyron-storm-wrap {
+  position: absolute;
+  inset: -20%;
+  filter: blur(40px);
+}
+
+.kyron-storm {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 15%, rgba(255,26,26,0.18), transparent 60%),
+    radial-gradient(ellipse 50% 35% at 80% 10%, rgba(196,0,0,0.16), transparent 60%),
+    radial-gradient(ellipse 45% 50% at 50% 90%, rgba(255,26,26,0.12), transparent 65%);
+  will-change: transform;
+  animation: kyron-storm-drift 16s ease-in-out infinite;
+}
+
+@keyframes kyron-storm-drift {
+  0%   { transform: translate3d(0%, 0%, 0) scale(1); }
+  25%  { transform: translate3d(-2.5%, 1.5%, 0) scale(1.05); }
+  50%  { transform: translate3d(1.5%, -2%, 0) scale(1.02); }
+  75%  { transform: translate3d(2%, 1%, 0) scale(1.06); }
+  100% { transform: translate3d(0%, 0%, 0) scale(1); }
+}
+
+/* Faint HUD-style grid, masked toward the top */
+.kyron-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255,26,26,0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,26,26,0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+}
+
+/* Occasional lightning flash — irregular timing via two overlapping
+   animations with different, non-multiple durations */
+.kyron-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,60,60,0.35), transparent 70%);
+  opacity: 0;
+  animation: kyron-flash-a 7.3s ease-in-out infinite;
+}
+
+.kyron-flash-2 {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 50% 40% at 30% 20%, rgba(255,120,120,0.25), transparent 70%);
+  opacity: 0;
+  animation: kyron-flash-b 11.7s ease-in-out infinite;
+}
+
+@keyframes kyron-flash-a {
+  0%, 96%, 100% { opacity: 0; }
+  97% { opacity: 0.9; }
+  97.6% { opacity: 0.1; }
+  98% { opacity: 0.7; }
+  98.6% { opacity: 0; }
+}
+
+@keyframes kyron-flash-b {
+  0%, 91%, 100% { opacity: 0; }
+  92% { opacity: 0.6; }
+  92.5% { opacity: 0; }
+  93% { opacity: 0.4; }
+  93.6% { opacity: 0; }
+}
+
+/* Small drifting embers — lightweight DOM particles, not canvas,
+   so they keep animating reliably across route changes. */
+@keyframes kyron-ember-rise {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+  10%  { opacity: 0.8; }
+  90%  { opacity: 0.4; }
+  100% { transform: translate3d(var(--drift, 20px), -110vh, 0); opacity: 0; }
+}
+
+.kyron-ember {
+  position: absolute;
+  bottom: -5%;
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: var(--kyron-red);
+  box-shadow: 0 0 6px 1px rgba(255,26,26,0.8);
+  animation-name: kyron-ember-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+/* Ambient glow used behind the hero logo specifically */
+@keyframes kyron-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  50% { transform: translate(2%, -3%) scale(1.08); opacity: 0.7; }
+}
+
+.kyron-glow {
+  animation: kyron-drift 12s ease-in-out infinite;
+}
+
+/* Thin sweeping scan-line accent */
+@keyframes kyron-scan {
+  0% { transform: translateX(-120%); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+
+.kyron-scanline {
+  animation: kyron-scan 6s linear infinite;
+}
+
+@keyframes kyron-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.kyron-fade-up {
+  animation: kyron-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Gentle float/breathing on the hero logo image */
+@keyframes kyron-hero-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.015); }
+}
+
+.kyron-hero-float {
+  animation: kyron-hero-float 8s ease-in-out infinite;
+}
+
+/* Shared button motion: subtle press/lift + glow pulse on hover.
+   Applied via className="kyron-btn" alongside existing color classes. */
+.kyron-btn {
+  transition: transform 0.15s ease, box-shadow 0.25s ease, background-color 0.2s ease;
+}
+.kyron-btn:hover {
+  transform: translateY(-2px);
+}
+.kyron-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+@keyframes kyron-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,26,26,0.35); }
+  50% { box-shadow: 0 0 0 8px rgba(255,26,26,0); }
+}
+
+.kyron-btn-primary {
+  animation: kyron-pulse-glow 2.8s ease-in-out infinite;
+}
+.kyron-btn-primary:hover {
+  animation: none;
+}
+
+/* Page content sits above the fixed backdrop */
+.kyron-page {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kyron-glow, .kyron-scanline, .kyron-fade-up, .kyron-storm, .kyron-flash, .kyron-flash-2, .kyron-ember, .kyron-hero-float, .kyron-btn-primary {
+    animation: none !important;
+  }
+  .kyron-btn:hover, .kyron-btn:active {
+    transform: none !important;
+  }
+}
+
+
+/* Modern Kyron hero upgrades */
+.kyron-hero-image {
+  filter: drop-shadow(0 0 45px rgba(255,26,26,.35));
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, black 40%, transparent 100%);
+  animation: kyron-image-float 8s ease-in-out infinite;
+}
+
+@keyframes kyron-image-float {
+  0%,100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-18px) scale(1.03); }
+}
+
+.kyron-energy-ring {
+  width: 650px;
+  height: 650px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,26,26,.18);
+  box-shadow: 0 0 100px rgba(255,26,26,.12), inset 0 0 80px rgba(255,26,26,.08);
+  animation: kyron-ring 10s linear infinite;
+}
+
+@keyframes kyron-ring {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to { transform: translate(-50%,-50%) rotate(360deg); }
+}
+
+.kyron-lightning {
+  background:
+    linear-gradient(115deg, transparent 35%, rgba(255,255,255,.8), transparent 37%) 20% -20% / 250px 500px no-repeat,
+    linear-gradient(70deg, transparent 45%, rgba(255,40,40,.7), transparent 47%) 80% -30% / 300px 600px no-repeat;
+  opacity: 0;
+  animation: kyron-strike 9s infinite;
+}
+
+@keyframes kyron-strike {
+  0%,88%,100% { opacity:0; }
+  89% { opacity:1; }
+  90% { opacity:.2; }
+  91% { opacity:.8; }
+  92% { opacity:0; }
+}
+
+.kyron-btn {
+  position: relative;
+  overflow:hidden;
+  border:1px solid rgba(255,26,26,.45);
+  box-shadow:0 0 30px rgba(255,26,26,.18);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+
+.kyron-btn::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg, transparent, rgba(255,255,255,.35), transparent);
+  transform:translateX(-120%);
+  transition:transform .6s ease;
+}
+
+.kyron-btn:hover {
+  transform:translateY(-3px);
+  box-shadow:0 0 45px rgba(255,26,26,.4);
+}
+
+.kyron-btn:hover::before {
+  transform:translateX(120%);
+}
